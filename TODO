@@ -1,0 +1,4 @@
+Instead of installing the required libraries in the machine,
+	do either of the following:
+1) Provide the static library in "lib" folder and link it during compilation.
+2) Even better, provide source in "src" folder and build it.
