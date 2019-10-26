@@ -54,6 +54,21 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
   return program;
 }
 
+int createBuffer(){
+  /* Buffer data */
+  float pos[6] = { -0.5f, -0.5f, 0.5f, -0.5f, 0.0f, 0.5f };              // Coordenadas, datos a guardar en el buffer
+
+  /* Create and populate buffer */
+  unsigned int buffer;                                                   // Lugar donde guardar el índice
+  glGenBuffers(1, &buffer);                                              // Creo el buffer, cuyo índice se guarda en la dirección de buffer
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);                                 // Seleccionamos el tipo de buffer, en este caso, un simple array de datos.
+  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), pos, GL_STATIC_DRAW); // Guardamos los datos en el buffer
+
+  /* Layout of buffer (attributes) */
+  glEnableVertexAttribArray(0);                                          // El parámetro es el índice del atributo a activar.
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); // Especificamos el layout del primer y único atributo de nuestros vértices
+}
+
 int main(void)
 {
     GLFWwindow* window;                      // Create the window
@@ -69,25 +84,18 @@ int main(void)
     glfwMakeContextCurrent(window);          // Make window the current context
     if (glewInit() != GLEW_OK) return -1;    // Initialize GLEW
 
-    float pos[6] = { -0.5f, -0.5f, 0.5f, -0.5f, 0.0f, 0.5f };              // Coordenadas, datos a guardar en el buffer
-    unsigned int buffer;                                                   // Lugar donde guardar el índice
-    glGenBuffers(1, &buffer);                                              // Creo el buffer, cuyo índice se guarda en la dirección de buffer
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);                                 // Seleccionamos el tipo de buffer, en este caso, un simple array de datos.
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), pos, GL_STATIC_DRAW); // Guardamos los datos en el buffer
-
-    glEnableVertexAttribArray(0);                                          // El parámetro es el índice del atributo a activar.
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); // Especificamos el layout del primer y único atributo de nuestros vértices
+    createBuffer();
 
     while (!glfwWindowShouldClose(window)) { // Loop until window is closed
         /* Start of rendering */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        /* // Esto es un ejemplo de Legacy OpenGL, que no necesita nada de lo anterior
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f,-0.5f);
-        glVertex2f(0.5f,-0.5f);
-        glVertex2f(0.0f,0.5f);
-        glEnd(); */
+        /* Esto es un ejemplo de Legacy OpenGL, que no necesita buffers, shaders, ni nada */
+        // glBegin(GL_TRIANGLES);
+        // glVertex2f(-0.5f,-0.5f);
+        // glVertex2f(0.5f,-0.5f);
+        // glVertex2f(0.0f,0.5f);
+        // glEnd();
 
         /* En OpenGL moderno, usamos esto */
         glDrawArrays(GL_TRIANGLES, 0, 3);
