@@ -5,5 +5,5 @@ CPPFLAGS = -Iinclude
 LDFLAGS = -Llib -lGLEW -lglfw -lGL
 
 build:
-	rm App
+	rm -f App;
 	g++ src/App.cpp $(CPPFLAGS) $(LDFLAGS) -o App

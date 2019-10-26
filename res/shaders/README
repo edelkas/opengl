@@ -1,0 +1,4 @@
+This folder should contain all our shaders.
+
+We can choose to separate the vertex and the fragment shaders, but I've chosen
+to unify them for now.

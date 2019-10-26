@@ -1,5 +1,38 @@
 #include <GLEW/glew.h>                       // OpenGL extensions
 #include <GLFW/glfw3.h>                      // Windowing, input, etc.
+#include <string>                            // std::string class
+#include <iostream>                          // I/O manipulation
+#include <fstream>                           // File stream
+#include <sstream>                           // String stream
+
+struct ShaderSource{
+  std::string vertexSource;
+  std::string fragmentSource;
+};
+
+static ShaderSource ParseShader(const std::string& filepath){
+  std::ifstream stream(filepath);                    // Input file stream
+  std::string line;                                  // Store current line
+  std::stringstream ss[2];                           // Store code for each shader
+
+  enum class ShaderType{ NONE = -1, VERTEX = 0, FRAGMENT = 1 };
+  ShaderType type = ShaderType::NONE;
+
+  /* Store each line of code into the appropriate stream, either vertex or fragment */
+  while(getline(stream, line)){                      // Loop through lines of stream
+    if (line.find("#shader") != std::string::npos){  // Shader sections
+      if (line.find("vertex") != std::string::npos){ // Vertex shader header
+        type = ShaderType::VERTEX;
+      } else {                                       // Fragment shader header
+        type = ShaderType::FRAGMENT;
+      }
+    } else {                                         // Any other line is code
+      if (type != ShaderType::NONE) ss[(int)type] << line << '\n';
+    }
+  }
+
+  return { ss[0].str(), ss[1].str() };               // Implicitly create struct
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source){
   /* Compile shader */
@@ -23,7 +56,7 @@ static unsigned int CompileShader(unsigned int type, const std::string& source){
 
     // Print error message
     std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader:\n" << message << std::endl;
-    delete[] errorMessage;
+    delete[] message;
 
     // Delete erroneous shader
     glDeleteShader(id);
@@ -47,9 +80,9 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
   glValidateProgram(program);
 
   glDeleteShader(vs);                        // Delete intermediate object files
-  glDetachShader(vs);                        // Delete shader source from memory
+  glDetachShader(program, vs);               // Delete shader source from memory
   glDeleteShader(fs);
-  glDetachShader(fs);
+  glDetachShader(program, fs);
 
   return program;
 }
@@ -84,7 +117,17 @@ int main(void)
     glfwMakeContextCurrent(window);          // Make window the current context
     if (glewInit() != GLEW_OK) return -1;    // Initialize GLEW
 
+    /* Set up data buffer */
     createBuffer();
+
+    /* Read shader sources */
+    ShaderSource src = ParseShader("res/shaders/Basic.shader");
+
+    /* Set up shader */
+    unsigned int shader = CreateShader(src.vertexSource, src.fragmentSource);
+
+    /* Bind shader */
+    glUseProgram(shader);
 
     while (!glfwWindowShouldClose(window)) { // Loop until window is closed
         /* Start of rendering */
@@ -105,6 +148,7 @@ int main(void)
         glfwPollEvents();                    // Poll for and process events
     }
 
+    glDeleteProgram(shader);                 // Delete shader from memory
     glfwTerminate();
     return 0;
 }
