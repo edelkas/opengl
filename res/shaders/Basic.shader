@@ -10,5 +10,5 @@ void main(){
 #version 330 core
 layout(location = 0) out vec4 color;   // color is an output variable
 void main(){
-  color = vec4(1.0, 0.0, 0.0, 1.0);    // Specify the color of the pixels
+  color = vec4(0.2, 0.3, 0.8, 1.0);    // Specify the color of the pixels
 };

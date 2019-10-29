@@ -5,6 +5,9 @@
 #include <fstream>                           // File stream
 #include <sstream>                           // String stream
 
+// -----------------------------------------------------------------------------
+//                             BOILERPLATE CODE
+// -----------------------------------------------------------------------------
 struct ShaderSource{
   std::string vertexSource;
   std::string fragmentSource;
@@ -87,19 +90,58 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
   return program;
 }
 
-int createBuffer(){
+// -----------------------------------------------------------------------------
+//                                  EXAMPLES
+// -----------------------------------------------------------------------------
+
+/**
+ * EXAMPLE 1 - TRIANGLE
+ */
+int createBuffer1(){
   /* Buffer data */
-  float pos[6] = { -0.5f, -0.5f, 0.5f, -0.5f, 0.0f, 0.5f };              // Coordenadas, datos a guardar en el buffer
+  float pos[6] = { -0.5f, -0.5f, 0.5f, -0.5f, 0.0f, 0.5f };              // Data to save in buffer, coordinates, vertices
 
   /* Create and populate buffer */
-  unsigned int buffer;                                                   // Lugar donde guardar el índice
-  glGenBuffers(1, &buffer);                                              // Creo el buffer, cuyo índice se guarda en la dirección de buffer
-  glBindBuffer(GL_ARRAY_BUFFER, buffer);                                 // Seleccionamos el tipo de buffer, en este caso, un simple array de datos.
-  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), pos, GL_STATIC_DRAW); // Guardamos los datos en el buffer
+  unsigned int buffer;                                                   // Pointer to index of buffer
+  glGenBuffers(1, &buffer);                                              // Create buffer, index is saved in pointer
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);                                 // Bind buffer and establish type, mere array of data
+  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), pos, GL_STATIC_DRAW); // Save data in buffer
 
   /* Layout of buffer (attributes) */
-  glEnableVertexAttribArray(0);                                          // El parámetro es el índice del atributo a activar.
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); // Especificamos el layout del primer y único atributo de nuestros vértices
+  glEnableVertexAttribArray(0);                                          // Enable parameter of index 0
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); // Specify layout of first and only attribute
+}
+
+int renderScene1(){
+  glDrawArrays(GL_TRIANGLES, 0, 3);                                      // Render triangle, data starting at index 0, 3 vertices
+}
+
+/**
+ * EXAMPLE 2 - SQUARE, W/O INDEX BUFFERS
+ */
+int createBuffer2(){
+  /* Buffer data */
+  float pos[12] = { -0.5f, -0.5f, // First triangle
+                    0.5f, -0.5f,
+                    0.5f,  0.5f,
+
+                    0.5f,  0.5f, // Second triangle
+                   -0.5f,  0.5f,
+                   -0.5f, -0.5f };
+
+  /* Create and populate buffer */
+  unsigned int buffer;
+  glGenBuffers(1, &buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  glBufferData(GL_ARRAY_BUFFER, 2* 6 * sizeof(float), pos, GL_STATIC_DRAW);
+
+  /* Layout of buffer (attributes) */
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+}
+
+int renderScene2(){
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 int main(void)
@@ -118,7 +160,7 @@ int main(void)
     if (glewInit() != GLEW_OK) return -1;    // Initialize GLEW
 
     /* Set up data buffer */
-    createBuffer();
+    createBuffer2();
 
     /* Read shader sources */
     ShaderSource src = ParseShader("res/shaders/Basic.shader");
@@ -133,15 +175,8 @@ int main(void)
         /* Start of rendering */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        /* Esto es un ejemplo de Legacy OpenGL, que no necesita buffers, shaders, ni nada */
-        // glBegin(GL_TRIANGLES);
-        // glVertex2f(-0.5f,-0.5f);
-        // glVertex2f(0.5f,-0.5f);
-        // glVertex2f(0.0f,0.5f);
-        // glEnd();
-
         /* En OpenGL moderno, usamos esto */
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        renderScene2();
 
         /* End of rendering */
         glfwSwapBuffers(window);             // Swap front and back buffers
