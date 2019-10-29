@@ -156,7 +156,7 @@ int renderScene2(){
  */
 int createBuffer3(){
   /* Vertex buffer data */
-  float pos[12] = {
+  float pos[] = {
                     -0.5f, -0.5f, // 0
                      0.5f, -0.5f, // 1
                      0.5f,  0.5f, // 2
@@ -173,7 +173,7 @@ int createBuffer3(){
   unsigned int buffer;
   glGenBuffers(1, &buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, 2 * 6 * sizeof(float), pos, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 2 * 4 * sizeof(float), pos, GL_STATIC_DRAW);
 
   /* Populate index buffer */
   unsigned int ibo; // Index buffer object
