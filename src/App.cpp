@@ -113,7 +113,12 @@ int createBuffer1(){
 }
 
 int renderScene1(){
-  glDrawArrays(GL_TRIANGLES, 0, 3);                                      // Render triangle, data starting at index 0, 3 vertices
+  /*
+   * @mode  - self-explanatory
+   * @first - index of first vertex
+   * @count - amount of vertices
+   */
+  glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 /**
@@ -121,13 +126,15 @@ int renderScene1(){
  */
 int createBuffer2(){
   /* Buffer data */
-  float pos[12] = { -0.5f, -0.5f, // First triangle
-                    0.5f, -0.5f,
-                    0.5f,  0.5f,
+  float pos[12] = {
+                    -0.5f, -0.5f, // First triangle
+                     0.5f, -0.5f,
+                     0.5f,  0.5f,
 
-                    0.5f,  0.5f, // Second triangle
-                   -0.5f,  0.5f,
-                   -0.5f, -0.5f };
+                     0.5f,  0.5f, // Second triangle
+                    -0.5f,  0.5f,
+                    -0.5f, -0.5f
+                  };
 
   /* Create and populate buffer */
   unsigned int buffer;
@@ -142,6 +149,51 @@ int createBuffer2(){
 
 int renderScene2(){
   glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+/**
+ * EXAMPLE 3 - SQUARE, W/ INDEX BUFFERS
+ */
+int createBuffer3(){
+  /* Vertex buffer data */
+  float pos[12] = {
+                    -0.5f, -0.5f, // 0
+                     0.5f, -0.5f, // 1
+                     0.5f,  0.5f, // 2
+                   - 0.5f,  0.5f  // 3
+                  };
+
+  /* Index buffer data */
+  unsigned int indices[] = {
+    0, 1, 2, // First triangle
+    2, 3, 0  // Second triangle
+  };
+
+  /* Populate vertex buffer */
+  unsigned int buffer;
+  glGenBuffers(1, &buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, buffer);
+  glBufferData(GL_ARRAY_BUFFER, 2 * 6 * sizeof(float), pos, GL_STATIC_DRAW);
+
+  /* Populate index buffer */
+  unsigned int ibo; // Index buffer object
+  glGenBuffers(1, &ibo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+  /* Layout of vertex buffer (attributes) */
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+}
+
+int renderScene3(){
+  /*
+   * @mode    - self-explanatory
+   * @count   - number of indices
+   * @type    - type of data in index buffer
+   * @indices - pointer to index buffer (optional if its bound)
+   */
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 
 int main(void)
@@ -160,7 +212,7 @@ int main(void)
     if (glewInit() != GLEW_OK) return -1;    // Initialize GLEW
 
     /* Set up data buffer */
-    createBuffer2();
+    createBuffer3();
 
     /* Read shader sources */
     ShaderSource src = ParseShader("res/shaders/Basic.shader");
@@ -176,7 +228,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         /* En OpenGL moderno, usamos esto */
-        renderScene2();
+        renderScene3();
 
         /* End of rendering */
         glfwSwapBuffers(window);             // Swap front and back buffers
