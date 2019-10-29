@@ -98,8 +98,12 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
  * EXAMPLE 1 - TRIANGLE
  */
 int createBuffer1(){
-  /* Buffer data */
-  float pos[6] = { -0.5f, -0.5f, 0.5f, -0.5f, 0.0f, 0.5f };              // Data to save in buffer, coordinates, vertices
+  /* Buffer data, coordinates, vertices */
+  float pos[6] = {
+                  -0.5f, -0.5f,
+                   0.5f, -0.5f,
+                   0.0f,  0.5f
+                 };
 
   /* Create and populate buffer */
   unsigned int buffer;                                                   // Pointer to index of buffer
@@ -196,6 +200,37 @@ int renderScene3(){
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 
+// -----------------------------------------------------------------------------
+//                              RENDERING CODE
+// -----------------------------------------------------------------------------
+static unsigned int renderInit(){
+  /* Set up data buffer */
+  createBuffer3();
+
+  /* Read shader sources */
+  ShaderSource src = ParseShader("res/shaders/Basic.shader");
+
+  /* Set up shader */
+  unsigned int shader = CreateShader(src.vertexSource, src.fragmentSource);
+
+  /* Bind shader */
+  glUseProgram(shader);
+
+  /* Return shader */
+  return shader;
+}
+
+static void renderLoop(){
+  renderScene3();
+}
+
+static void renderTerminate(unsigned int shader){
+  glDeleteProgram(shader);                 // Delete shader from memory
+}
+
+// -----------------------------------------------------------------------------
+//                                MAIN PROGRAM
+// -----------------------------------------------------------------------------
 int main(void)
 {
     GLFWwindow* window;                      // Create the window
@@ -211,31 +246,21 @@ int main(void)
     glfwMakeContextCurrent(window);          // Make window the current context
     if (glewInit() != GLEW_OK) return -1;    // Initialize GLEW
 
-    /* Set up data buffer */
-    createBuffer3();
-
-    /* Read shader sources */
-    ShaderSource src = ParseShader("res/shaders/Basic.shader");
-
-    /* Set up shader */
-    unsigned int shader = CreateShader(src.vertexSource, src.fragmentSource);
-
-    /* Bind shader */
-    glUseProgram(shader);
+    unsigned int shader = renderInit();      // Set up our scene
 
     while (!glfwWindowShouldClose(window)) { // Loop until window is closed
         /* Start of rendering */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        /* En OpenGL moderno, usamos esto */
-        renderScene3();
+        /* Rendering */
+        renderLoop();                        // Render the scene
 
         /* End of rendering */
         glfwSwapBuffers(window);             // Swap front and back buffers
         glfwPollEvents();                    // Poll for and process events
     }
 
-    glDeleteProgram(shader);                 // Delete shader from memory
+    renderTerminate(shader);                       // Terminate rendering
     glfwTerminate();
     return 0;
 }
