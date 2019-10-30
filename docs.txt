@@ -1,0 +1,251 @@
++------------------------------+
+|            OpenGL            |
++------------------------------+
+
+Documentación: http://docs.gl/
+
+#################################### Introducción ####################################
+
+\\ ------------ Introducción ------------
+
+* Se trata de una API gráfica que nos permite acceder a la GPU y controlarla o programar en ella.
+* Es una especificación, no una implementación, es decir, no tiene código.
+* Cada manufacturador de GPU programa su propia implementación en los drivers de la tarjeta: Nvidia, ATI, etc.
+
+* Es cross-platform.
+** Esto puede significar que sea menos eficiente que una API diseñada para un sistema específico, aunque realmente depende de la implementación que tengan la GPU.
+
+* Otros ejemplos son:
+** Direct3D: Windows.
+** Vulkan: Cross-Platform.
+** Metal: iOS, mac OS, tvOS.
+* Como comparación, Vulkan, Direct3D 12 (y en menor medida Metal) son más low-level para ofrecer mejor rendimiento. OpenGL y Direct3D 11 son más high-level, el primero sea posiblemente el mejor para aprender.
+
+* Nota: Lo normal es que un motor cross-platform no lo sea porque implemente una API cross-platform únicamente, sino que un motor implementa varias APIs.
+
+\\ ------------ Historia ------------
+
+* OpenGL apareció en los 90, pero entonces las GPU ofrecían mucho menos control.
+* Por tanto, OpenGL viejo consistía básicamente de una serie de recetas muy simples para generar gráficos. El código era poco potente pero más sencillo.
+* OpenGL moderno permite mucho más control con un código más complejo.
+* Esa es la principal diferencia entre OpenGL viejo y OpenGL moderno.
+* Concretamente, la existencia de shaders in OpenGL moderno.
+
+* Un SHADER es cualquier código que se ejecuta en la GPU en lugar de la CPU.
+
+\\ ------------ Interación ------------
+
+* La creación de ventanas, el reconocimiento de inputs, etc. son evidentemente algo dependiente del sistema operativo.
+* Para un proyecto serio, lo suyo sería crearlas manualmente usando la API correspondiente a cada una de las plataformas que quiero soportar.
+* Otra alternativa es usar una librería que se encargue de ello: GLFW, GLUT, etc.
+
+* Usaremos GLFW: Es una librería ligera, sólo proporciona lo básico (ventanas, un contexto de opengl, inputs, etc.). NO es un framework completo.
+
+\\ ------------ Extensiones ------------
+
+* El núcleo de OpenGL es sencillo, con los años han ido apareciendo extensiones que resultan en la práctica necesarias.
+* Windows es particularmente problemático: Por defecto expone OpenGL 1.1!
+* Cada manufacturador de GPU podría implementar las suyas propias, pero hay muchas que son comunes.
+* Lo que habría que hacer es extraer la implementación que realiza nuestra GPU.
+* Como esto es impracticable, se usan librerías para ello: GLEW, GLAD, etc.
+
+* Usaremos GLEW.
+* Nota: GLEW debe inicializarse cuando ya tenemos un contexto de OpenGL válido, es decir, cuando ya hemos llamado glfwInit y glfwMakeContextCurrent.
+
+\\ ------------ Notas de instalación ------------
+
+* Descargar el código y makear las librerías siguiendo las instrucciones.
+* Linkearlas en el proyecto (-lGLEW -lGL -lglfw).
+* Poner los headers correspondientes en la carpeta del proyecto.
+* Incluirlos en el código de C++.
+* Nota: GLEW debe incluirse antes de GLFW.
+
+#################################### Elementos fundamentales ####################################
+
+\\ ------------ Introducción ------------
+
+* En OpenGL viejo es muy sencillo conseguir dibujar en pantalla. Para un triángulo bastan 5 líneas:
+** glBegin(GL_TRIANGLES);
+     glVertex2f(-0.5f,-0.5f);
+     glVertex2f(0.5f,-0.5f);
+     glVertex2f(0.0f,0.5f);
+   glEnd();
+* En OpenGL moderno, al ser mucho más flexible y de bajo nivel, es preciso antes de comenzar tener varios requisitos: Un Vertex Buffer y un Shader.
+
+\\ ------------ Vertex Buffer ------------
+
+* Es un buffer en memoria gráfica (VRAM, la memoria de la GPU), simplemente un array de bytes, un blob de datos.
+* Para dibujar algo, metemos los datos en el buffer, y mandamos un Draw Call.
+* Habrá que especificarle a la GPU cómo interpretar esos datos, es decir, habrá que programar la GPU.
+* Eso es un shader.
+* Nota: En OpenGL, cada objeto que se crea en el buffer devuelve un ENTERO que indica el índice de dicho objeto (ver "State machine").
+
+* Ejemplo de sintáxis, vértices de un triángulo:
+float pos[6] = { -0.5f,-0.5f,0.5f,-0.5f,0.0f,0.5f }; // Coordenadas, datos a guardar en el buffer
+unsigned int buffer; // Lugar donde guardar el índice
+glGenBuffers(1, &buffer); // Creo el buffer, cuyo índice se guarda en la dirección de buffer
+glBindBuffer(GL_ARRAY_BUFFER, buffer); // Seleccionamos el tipo de buffer, en este caso, un simple array de datos.
+glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), pos, GL_STATIC_DRAW); // Guardamos los datos en el buffer
+
+### glBufferData ###
+Explicación de los parámetros:
+  1) Tipo de datos del buffer.
+  2) Tamaño en bytes.
+  3) Puntero hacia los datos.
+  4) Uso de los datos. La primera palabra puede ser STATIC, DYNAMIC o STREAM, y la segunda puede ser DRAW, READ o COPY. Static es cuando los datos se van a usar mucho sin modificar, dynamic es cuando se van a modificar, y stream es cuando no se van a modificar y se van a usar poco. Éste último se usa poco. Las otras palabras son self-explanatory.
+
+\\ ------------ Vertex attributes ------------
+
+* La información que hay en el Vertex Buffer es una cadena de bytes.
+* Para darle cierto sentido, es preciso indicar cuál es la estructura de la información, el layout (los 10 primeros bytes son floats por parejas, ...).
+* Eso es lo que hacen los Vertex Attributes.
+* Cada vértice (dato) se descompone en una serie de atributos.
+* Cada atributo tiene un índice que es necesario para referenciarlo.
+
+* Para hacerlo, el buffer debe estar bindeado ya.
+* Sintáxis (siguiendo con nuestro ejemplo):
+glEnableVertexAttribArray(0); // El parámetro es el índice del atributo a activar.
+glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+
+### glVertexAttribPointer ###
+Explicación de los parámetros:
+  1) Índice del atributo a especificar.
+  2) Número de 
+  3) Tipo del atributo.
+  4) ¿Normalizar? En nuestro ya está hecho.
+  5) Tamaño de cada vértice en bytes.
+  6) Offset del atributo dentro del vértice en bytes (debe ser un (const void*)).
+
+Nota: Cuando los vértices con construcciones más complejas, lo suyo es tener un struct que represente un vértice, y llenar el buffer con estos objetos. De este modo, el parámetro 5 sería sizeof del struct, y para el parámetro 6 podríamos usar un macro que calcule automáticamente el offset de un miembro del struct.
+
+\\ ------------ Shader ------------
+
+* Es un programa que se ejecuta en la GPU en lugar de la CPU. Es como se programa la GPU.
+* En ella especificamos cómo interpretar los datos de los Vertex Buffer.
+* Este ciclo Buffer -> Shader es el fundamento de la programación gráfica con OpenGL.
+* Nota: Según la GPU, pueden proporcionar shaders por defecto, lo que hace que en ocasiones no sea necesario implementar un shader para interpretar un vertex buffer. Sin embargo, al ser algo muy dependiente de la GPU y de sus drivers, esto no es recomendable -> Siempre tener un shader.
+
+* No todo tiene porqué programarse en la GPU, en cualquier proyecto serio lo normal es balancear ambas según la tarea.
+* Sin embargo, para muchas cosas será necesario, por ejemplo, para la iluminación.
+
+* Dos tipos mas comunes:
+** Vertex shaders: Se ejecuta para cada vértice. En nuestro ejemplo del triángulo, 3 veces. Propósito principal, dónde rasterizar dicho vértice, la posición en la ventana. Lo normal es que sea una transformación de un atributo de posición de los vértices (e.g. la cámara que se mueve en un juego).
+** Fragment shaders (aka pixel shaders): Se ejecuta para cada pixel que se ha de rasterizar. Propósito principal, decidir el color de dicho pixel. Por tanto, las cosas aquí son mucho más caras, ya que este shader se llama muchas más veces, quizá millones.
+* Aunque hay más (geometry shaders, tessellation shaders, compute shaders, ...).
+
+* Cuando hacemos el draw call, primero se llama el vertex shader, luego el fragment shader, y luego ya se rasteriza la imagen. Por supuesto, hay muchos otros pasos intermedios, pero ese es el orden.
+* Nota: Los proyectos serios, de hecho, generan shaders sobre la marcha según lo que sea necesario.
+
+\\ ------------ State machine ------------
+
+* OpenGL está basado en estados. Es decir, en lugar de especificar lo que hay que hacer en cada momento, la GPU ya conoce tanto los datos (los buffers) como los programas (shaders).
+* En cada momento simplemente llamamos al buffer y al shader apropiado, y el resultado ocurre.
+* Por tanto, es preciso "Bindear" antes de realizar cualquier modificación a un buffer.
+
+* Dibujemos el triángulo que hemos definido en "Vertex Buffers" y que hemos programado en "Shader".
+glDrawArrays(GL_TRIANGLES, 0, 3);
+
+### glDrawArrays ###
+Parámetros:
+  1) Primitivo a dibujar.
+  2) Índice inicial.
+  3) Número de vértices a dibujar.
+
+#################################### Shaders ####################################
+
+A estas alturas ya tenemos un programa completo que renderizaría un triángulo, a falta de programar el shader. De hecho, muchas GPU vienen con shaders por defecto que pueden estar realizando ya un renderizado estándar.
+
+* GLSL: GL Shader Language, es un lenguaje de alto nivel basado en C y C++ con el cual se programan los shaders, que pueden ejecutarse en cualquier GPU compatible con OpenGL.
+
+\\ ------------ Crear shaders (genérico) ------------
+
+* Es habitual leer los shaders como strings en C++ con su código fuente, para luego compilarlo.
+* Esto puede provenir del propio código fuente del programa, o ficheros externos, quizá de internet.
+* Crear un shader:
+** 1) Proporcionar código fuente del vertexShader y del fragmentShader.
+** 2) Compilar sendos códigos.
+** 3) Linkarlos en un único shader.
+** 4) Devolver un identificador del shader, como para buffers.
+** 5) Eliminar archivos intermedios sobrantes.
+
+* Por tanto podemos definir una función con una declaración como:
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader){ }
+* Funciones precisas para cada paso (ver código para detalles):
+** 1) glShaderSource
+** 2) glCompileShader
+** 3) glAttachShader
+** 4) glLinkProgram, glValidateProgram
+** 5) glDeleteShader, glDetachShader
+
+* Cada paso puede generar ciertos logs, como mensajes de error.
+* Para leerlos hay funciones como glGetShaderiv, glGetShaderInfoLog, etc.
+
+\\ ------------ Escribiendo un shader ------------
+
+* Podemos guardar el código del shader en un fichero y leerlo, embeddearlo en el código de C++ como un string, etc. Haremos lo segundo.
+* Especificamos la versión de GLSL a usar, y que no use funciones deprecadas:
+** #version 330 core
+* Tenemos nuestra función void main(){ }
+* Escribimos el shader en GLSL.
+
+\\ ------------ Usar shaders ------------
+
+* Lo habitual será tener una función para crear shaders, en nuestro caso CreateShader.
+* Con lo anterior, podemos usar el shader haciendo.
+** unsigned int shader = CreateShader(vertexShader, fragmentShader);
+** glUseProgram(shader);
+
+* Cuando terminemos de usarlo, lo liberamos de memoria:
+** glDeleteProgram(program);
+
+* Por comodidad, lo normal es tener ficheros externos con los shaders.
+* Es habitual tener dos, uno para el vertex shader y otro para el fragment shader.
+
+#################################### Otros elementos ####################################
+
+\\ ------------ Index buffers ------------
+
+* La mayoría de GPU's utilizan el triángulo como primitivo para renderizar todo. Cualquier cosa está compuesta de triángulos.
+* Por tanto, para dibujar un cuadrado, tendríamos que dibujar dos triángulos, que comparten varios vértices.
+* Esto tiene dos desventajas: Se vuelve muy complejo, y se usa más memoria para los vértices repetidos.
+
+* Aquí entran los 'index buffers'.
+* En lugar de repetir vértices, definimos una lista de vértices sin repeticiones, y luego usamos un array de enteros donde indicamos qué vértices se usan para cada triángulo, simplemente especificando los índices de los vértices en el primer array.
+* El array de índices debe ser unsigned.
+
+* Sintáxis:
+** Array de índices: unsigned int indices[] = { ... };
+** El buffer se crea y se puebla igual que el vertex buffer (4 líneas), excepto que el tipo es ahora GL_ELEMENT_ARRAY_BUFFER.
+** Renderizar: glDrawElements.
+* Este último comando requiere 4 parámetros: modo, número de índices, tipo de índices, puntero a índices.
+
+\\ ------------ Errores ------------
+
+* OpenGL es críptico con sus errores, con lo cual es difícil debuguear.
+* Esto hace necesario tener un buen framework que se encargue de diagnosticar los errores lo mejor posible.
+
+### glGetError ###
+
+* Existe desde hace mucho, con lo cual es compatible con prácticamente todo.
+* Cuando se llama una función de OpenGL, si hay error, una flag se establece con un valor que representa el código de error.
+* glGetError devuelve dicho código y limpia el flag.
+* Si no hay errores, el flag es GL_NO_ERROR, que vale 0.
+* Si hay varios errores, debemos llamar glGetError varias veces hasta que tengamos todos los códigos.
+* OpenGL elimina una flag arbitraria, con lo cual lo suyo es llamar a la función en un bucle hasta obtener 0.
+
+* Por tanto, el uso habitual es:
+** Llamar a glGetError hasta que se vacíe de errores.
+** Llamar a una función de OpenGL, digamos glDrawElements.
+** Llamar a glGetError hasta que se vacíe, para así saber los errores que se han producido con esa función.
+* Para resumirlo, podemos crear un macro que se encargue de hacer esas tres tareas:
+** #define GLCall(x) GLClearErrors(); x; GLCheckErrors();
+* Además, podemos usar estos trucos para que el error nos dé más información:
+** En el macro, si tenemos una variable x, #x lo convierte en un string. Lo podemos usar para capturar el nombre de la función en el que ha ocurrido el fallo.
+** __FILE__ nos indica el nombre del fichero .cpp desde el que se ha llamado al macro.
+** __LINE__ nos indica la linea en dicho fichero.
+
+### glDebugMessageCallback ###
+
+* Introducido en OpenGL 4.3, muy reciente, menos compatibilidad.
+* Automático: Nos permite especificar una función que será llamada cada vez que se produzca un error, en lugar de tener que comprobar nosotros manualmente.
+* Más detallado, en lugar de sólo un código de error.
