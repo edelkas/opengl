@@ -6,7 +6,35 @@
 #include <sstream>                           // String stream
 
 // -----------------------------------------------------------------------------
-//                             BOILERPLATE CODE
+//                               ERROR HANDLING
+// -----------------------------------------------------------------------------
+#define DEBUG
+
+/* Only check for errors in debug mode */
+#ifdef DEBUG
+    #define GLCall(x) GLClearErrors(); x; GLCheckErrors(#x, __FILE__, __LINE__);
+#else
+    #define GLCall(x) x
+#endif
+
+/* Clear all error flags */
+static void GLClearErrors(){
+  while(glGetError() != GL_NO_ERROR);
+}
+
+/* Read and clear all errorss */
+static bool GLCheckErrors(const char* function, const char* file, int line){
+  // TODO: Translate OpenGL error codes into enums (or even words)
+  bool error = false;
+  while(GLenum error = glGetError()){
+    std::cout << "[OpenGL Error] (" << error << "): " << function << " " << file << ":" << line << std::endl;
+    error = true;
+  }
+  return error;
+}
+
+// -----------------------------------------------------------------------------
+//                                SHADER CODE
 // -----------------------------------------------------------------------------
 struct ShaderSource{
   std::string vertexSource;
@@ -197,7 +225,7 @@ int renderScene3(){
    * @type    - type of data in index buffer
    * @indices - pointer to index buffer (optional if its bound)
    */
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr);
 }
 
 // -----------------------------------------------------------------------------
@@ -221,7 +249,7 @@ static unsigned int renderInit(){
 }
 
 static void renderLoop(){
-  renderScene3();
+  GLCall(renderScene3());
 }
 
 static void renderTerminate(unsigned int shader){
