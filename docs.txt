@@ -219,6 +219,28 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 ** Renderizar: glDrawElements.
 * Este último comando requiere 4 parámetros: modo, número de índices, tipo de índices, puntero a índices.
 
+\\ ------------ Uniforms ------------
+
+* Herramientas para mover información de la CPU a la GPU. De nuestro código C++ a nuestros shaders.
+* Esto se puede hacer también con los vertex buffers.
+* Una diferencia importante:
+** Los uniforms se hacen por cada Draw Call, en el loop.
+** Los vertex buffers se hacen por cada vértice, en el set up.
+
+### Sintáxis ###
+
+En el shader, podemos definirlo tal que así:
+    uniform vec4 nombreUnif;
+donde evidentemente el nombre y el tipo se ajustarán a lo que queramos.
+
+En el código de OpenGL, es decir, en C++, hacemos lo siguiente:
+0) El shader debe estar bindeado.
+1) Buscamos el índice del uniform:
+    int location = glGetUniformLocation(shader, "nombreUnif");
+2) Comprobamos que existe. Si location == -1, es que no. Eso puede significar un error, o puede significar que el uniform no se emplea en ningún sitio, y por tanto el compilador no lo ha incluído.
+3) Si existe, especificamos el valor usando la función correspondiente. En este caso, al tratarse de un vec4 de floats (digamos), hacemos:
+    glUniform4f(location, float1, float2, float3, float4);
+
 \\ ------------ Errores ------------
 
 * OpenGL es críptico con sus errores, con lo cual es difícil debuguear.

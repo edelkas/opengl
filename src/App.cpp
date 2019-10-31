@@ -225,31 +225,56 @@ int renderScene3(){
    * @type    - type of data in index buffer
    * @indices - pointer to index buffer (optional if its bound)
    */
-  glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+}
+
+/**
+ * EXAMPLE 4 - SQUARE, W/ INDEX BUFFERS, W/ UNIFORMS
+ */
+int createBuffer4(){
+  createBuffer3();
+}
+
+int renderScene4(int uniform){
+  glUniform4f(uniform, 0.2f, 0.3f, 0.8f, 1.0f);
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+}
+
+/**
+ * EXAMPLE 5 - SQUARE, W/ INDEX BUFFERS, W/ UNIFORMS, ANIMATED
+ */
+int createBuffer5(){
+  createBuffer3();
+}
+
+int renderScene5(int frame, int uniform){
+
+  if (uniform != -1) glUniform4f(uniform, 0.2f, ((float)(frame % 100)) / 100.0f, 0.8f, 1.0f);
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 
 // -----------------------------------------------------------------------------
 //                              RENDERING CODE
 // -----------------------------------------------------------------------------
-static unsigned int renderInit(){
+static unsigned int renderInit(unsigned int &shader, int &uniform){
   /* Set up data buffer */
-  createBuffer3();
+  createBuffer5();
 
   /* Read shader sources */
   ShaderSource src = ParseShader("res/shaders/Basic.shader");
 
   /* Set up shader */
-  unsigned int shader = CreateShader(src.vertexSource, src.fragmentSource);
+  shader = CreateShader(src.vertexSource, src.fragmentSource);
 
   /* Bind shader */
   glUseProgram(shader);
 
-  /* Return shader */
-  return shader;
+  /* Set up uniform */
+  uniform = glGetUniformLocation(shader, "u_Color");
 }
 
-static void renderLoop(){
-  GLCall(renderScene3());
+static void renderLoop(unsigned int frame, int uniform){
+  GLCall(renderScene5(frame, uniform));
 }
 
 static void renderTerminate(unsigned int shader){
@@ -261,8 +286,8 @@ static void renderTerminate(unsigned int shader){
 // -----------------------------------------------------------------------------
 int main(void)
 {
-    GLFWwindow* window;                      // Create the window
-    if (!glfwInit()) return -1;              // Initialize GLFW
+    GLFWwindow* window;                        // Create the window
+    if (!glfwInit()) return -1;                // Initialize GLFW
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
@@ -271,24 +296,29 @@ int main(void)
         return -1;
     }
 
-    glfwMakeContextCurrent(window);          // Make window the current context
-    if (glewInit() != GLEW_OK) return -1;    // Initialize GLEW
+    glfwMakeContextCurrent(window);            // Make window the current context
+    glfwSwapInterval(1);                       // Sync framerate with refresh rate
+    if (glewInit() != GLEW_OK) return -1;      // Initialize GLEW
 
-    unsigned int shader = renderInit();      // Set up our scene
+    unsigned int frame = 0;
+    int uniform;
+    unsigned int shader;
+    renderInit(shader, uniform);               // Set up our scene
 
-    while (!glfwWindowShouldClose(window)) { // Loop until window is closed
+    while (!glfwWindowShouldClose(window)) {   // Loop until window is closed
         /* Start of rendering */
         glClear(GL_COLOR_BUFFER_BIT);
 
         /* Rendering */
-        renderLoop();                        // Render the scene
+        renderLoop(frame, uniform);                   // Render the scene
 
         /* End of rendering */
-        glfwSwapBuffers(window);             // Swap front and back buffers
-        glfwPollEvents();                    // Poll for and process events
+        glfwSwapBuffers(window);               // Swap front and back buffers
+        glfwPollEvents();                      // Poll for and process events
+        frame++;                               // Increment frame count
     }
 
-    renderTerminate(shader);                       // Terminate rendering
+    renderTerminate(shader);                   // Terminate rendering
     glfwTerminate();
     return 0;
 }
