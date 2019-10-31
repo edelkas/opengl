@@ -248,8 +248,16 @@ int createBuffer5(){
 }
 
 int renderScene5(int frame, int uniform){
-
-  if (uniform != -1) glUniform4f(uniform, 0.2f, ((float)(frame % 100)) / 100.0f, 0.8f, 1.0f);
+  /*
+   * The uniform index is -1 if it was not found.
+   */
+  if (uniform != -1) {
+    int base = 100;
+    int limit = 50;
+    float g = ((float)(frame % limit)) / (float)base;
+    if ((frame % (2 * limit)) >= limit) g = (float)limit / (float)base - g;
+    glUniform4f(uniform, 0.0f, g, 0.0f, 1.0f);
+  }
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
 

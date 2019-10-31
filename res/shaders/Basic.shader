@@ -33,5 +33,5 @@ void main(){
   /*
    * Example 2: Using uniforms
    */
-  color = u_Color;    // Specify value of output color
+  color = u_Color;                     // Specify value of output color
 };
