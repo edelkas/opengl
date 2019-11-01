@@ -241,6 +241,25 @@ En el código de OpenGL, es decir, en C++, hacemos lo siguiente:
 3) Si existe, especificamos el valor usando la función correspondiente. En este caso, al tratarse de un vec4 de floats (digamos), hacemos:
     glUniform4f(location, float1, float2, float3, float4);
 
+\\ ------------ Vertex arrays ------------
+
+* Es un objeto que puede contener varios vertex buffers con layout incorporado.
+* Lo bindeamos, y _una vez hecho_, podemos bindear tanto los vertex buffer como los correspondientes atributos de los vértices, que quedarán contenidos en el vao en el índice indicado (esto ocurre al usar glVertexAttribPointer).
+* Técnicamente, los vertex arrays son obligatorios. Pero en modo compatibilidad, si no lo especificamos, se crea uno por defecto.
+* Si no lo usamos, cada vez que bindeamos un vertex buffer, debemos especificar el layout, no se guarda en el buffer.
+* Es bastante único de OpenGL, no presente en DirectX, etc.
+
+* Sintáxis:
+unsigned int vao;
+glGenVertexArrays(1, &vao);
+glBindVertexArray(vao);
+/* Bindear vertex buffer y llamar a glVertexAttribPointer */
+
+* Opciones:
+* 1) Tener un vao global siempre bindeado, y a partir de entonces, cada vez que queramos dibujar algo, bindear distintos vertex buffers y especificar su layout.
+* 2) Tener los vaos necesarios, cada uno ya con sus datos y su layout, y a la hora de dibujar, ir bindeando distintos vaos.
+* OpenGL recomienda 2), de hecho así el código puede quedar más organizado. 1) solía ser más rápido, pero seguramente la diferencia no es relevante para nosotros, si es que sigue existiendo.
+
 \\ ------------ Errores ------------
 
 * OpenGL es críptico con sus errores, con lo cual es difícil debuguear.

@@ -133,6 +133,11 @@ int createBuffer1(){
                    0.0f,  0.5f
                  };
 
+  /* Create vertex array */
+  unsigned int vao; // Vertex array object
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
   /* Create and populate buffer */
   unsigned int buffer;                                                   // Pointer to index of buffer
   glGenBuffers(1, &buffer);                                              // Create buffer, index is saved in pointer
@@ -168,6 +173,11 @@ int createBuffer2(){
                     -0.5f, -0.5f
                   };
 
+  /* Create vertex array */
+  unsigned int vao; // Vertex array object
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
   /* Create and populate buffer */
   unsigned int buffer;
   glGenBuffers(1, &buffer);
@@ -200,6 +210,11 @@ int createBuffer3(){
     0, 1, 2, // First triangle
     2, 3, 0  // Second triangle
   };
+
+  /* Create vertex array */
+  unsigned int vao; // Vertex array object
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
 
   /* Populate vertex buffer */
   unsigned int buffer;
