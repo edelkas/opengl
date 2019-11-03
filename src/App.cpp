@@ -4,34 +4,9 @@
 #include <iostream>                          // I/O manipulation
 #include <fstream>                           // File stream
 #include <sstream>                           // String stream
-
-// -----------------------------------------------------------------------------
-//                               ERROR HANDLING
-// -----------------------------------------------------------------------------
-#define DEBUG
-
-/* Only check for errors in debug mode */
-#ifdef DEBUG
-    #define GLCall(x) GLClearErrors(); x; GLCheckErrors(#x, __FILE__, __LINE__);
-#else
-    #define GLCall(x) x
-#endif
-
-/* Clear all error flags */
-static void GLClearErrors(){
-  while(glGetError() != GL_NO_ERROR);
-}
-
-/* Read and clear all errorss */
-static bool GLCheckErrors(const char* function, const char* file, int line){
-  // TODO: Translate OpenGL error codes into enums (or even words)
-  bool error = false;
-  while(GLenum error = glGetError()){
-    std::cout << "[OpenGL Error] (" << error << "): " << function << " " << file << ":" << line << std::endl;
-    error = true;
-  }
-  return error;
-}
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 // -----------------------------------------------------------------------------
 //                                SHADER CODE
@@ -155,7 +130,7 @@ int renderScene1(){
    * @first - index of first vertex
    * @count - amount of vertices
    */
-  glDrawArrays(GL_TRIANGLES, 0, 3);
+  GLCall(glDrawArrays(GL_TRIANGLES, 0, 3));
 }
 
 /**
@@ -190,7 +165,7 @@ int createBuffer2(){
 }
 
 int renderScene2(){
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 }
 
 /**
@@ -213,24 +188,18 @@ int createBuffer3(){
 
   /* Create vertex array */
   unsigned int vao; // Vertex array object
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
+  GLCall(glGenVertexArrays(1, &vao));
+  GLCall(glBindVertexArray(vao));
 
   /* Populate vertex buffer */
-  unsigned int buffer;
-  glGenBuffers(1, &buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, 2 * 4 * sizeof(float), pos, GL_STATIC_DRAW);
+  VertexBuffer vb(pos, 4 * 2 * sizeof(float));
 
   /* Populate index buffer */
-  unsigned int ibo; // Index buffer object
-  glGenBuffers(1, &ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+  IndexBuffer ib(indices, 6);
 
   /* Layout of vertex buffer (attributes) */
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+  GLCall(glEnableVertexAttribArray(0));
+  GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
 }
 
 int renderScene3(){
@@ -240,7 +209,7 @@ int renderScene3(){
    * @type    - type of data in index buffer
    * @indices - pointer to index buffer (optional if its bound)
    */
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 }
 
 /**
@@ -251,8 +220,8 @@ int createBuffer4(){
 }
 
 int renderScene4(int uniform){
-  glUniform4f(uniform, 0.2f, 0.3f, 0.8f, 1.0f);
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  GLCall(glUniform4f(uniform, 0.2f, 0.3f, 0.8f, 1.0f));
+  GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 }
 
 /**
@@ -271,9 +240,9 @@ int renderScene5(int frame, int uniform){
     int limit = 50;
     float g = ((float)(frame % limit)) / (float)base;
     if ((frame % (2 * limit)) >= limit) g = (float)limit / (float)base - g;
-    glUniform4f(uniform, 0.0f, g, 0.0f, 1.0f);
+    GLCall(glUniform4f(uniform, 0.0f, g, 0.0f, 1.0f));
   }
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+  GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 }
 
 // -----------------------------------------------------------------------------
@@ -290,18 +259,18 @@ static unsigned int renderInit(unsigned int &shader, int &uniform){
   shader = CreateShader(src.vertexSource, src.fragmentSource);
 
   /* Bind shader */
-  glUseProgram(shader);
+  GLCall(glUseProgram(shader));
 
   /* Set up uniform */
   uniform = glGetUniformLocation(shader, "u_Color");
 }
 
 static void renderLoop(unsigned int frame, int uniform){
-  GLCall(renderScene5(frame, uniform));
+  renderScene5(frame, uniform);
 }
 
 static void renderTerminate(unsigned int shader){
-  glDeleteProgram(shader);                 // Delete shader from memory
+  GLCall(glDeleteProgram(shader));             // Delete shader from memory
 }
 
 // -----------------------------------------------------------------------------

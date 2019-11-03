@@ -94,6 +94,9 @@ Explicación de los parámetros:
   3) Puntero hacia los datos.
   4) Uso de los datos. La primera palabra puede ser STATIC, DYNAMIC o STREAM, y la segunda puede ser DRAW, READ o COPY. Static es cuando los datos se van a usar mucho sin modificar, dynamic es cuando se van a modificar, y stream es cuando no se van a modificar y se van a usar poco. Éste último se usa poco. Las otras palabras son self-explanatory.
 
+* Cuando terminemos de usarlo, podemos liberarlo de memoria:
+glDeleteBuffers(1, &buffer);
+
 \\ ------------ Vertex attributes ------------
 
 * La información que hay en el Vertex Buffer es una cadena de bytes.
@@ -218,6 +221,8 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 ** El buffer se crea y se puebla igual que el vertex buffer (4 líneas), excepto que el tipo es ahora GL_ELEMENT_ARRAY_BUFFER.
 ** Renderizar: glDrawElements.
 * Este último comando requiere 4 parámetros: modo, número de índices, tipo de índices, puntero a índices.
+
+* Nota: El uso habitual es tener un Vertex Buffer con todos los vértices de un modelo, y luego una serie de Index Buffers para cada una de las partes del modelo que deben renderizarse independientemente, es decir, con distintas Draw Calls (porque necesitan distintas instrucciones, distintas texturas, etc).
 
 \\ ------------ Uniforms ------------
 
