@@ -192,10 +192,10 @@ int createBuffer3(){
   GLCall(glBindVertexArray(vao));
 
   /* Populate vertex buffer */
-  VertexBuffer vb(pos, 4 * 2 * sizeof(float));
+  VertexBuffer *vb = new VertexBuffer(pos, 4 * 2 * sizeof(float));
 
   /* Populate index buffer */
-  IndexBuffer ib(indices, 6);
+  IndexBuffer *ib = new IndexBuffer(indices, 6);
 
   /* Layout of vertex buffer (attributes) */
   GLCall(glEnableVertexAttribArray(0));

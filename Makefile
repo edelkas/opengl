@@ -6,4 +6,4 @@ LDFLAGS = -Llib -lGLEW -lglfw -lGL
 
 build:
 	rm -f App;
-	g++ src/App.cpp $(CPPFLAGS) $(LDFLAGS) -o App
+	g++ src/*.cpp $(CPPFLAGS) $(LDFLAGS) -o App
