@@ -7,6 +7,7 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
 
 // -----------------------------------------------------------------------------
 //                                SHADER CODE
@@ -187,9 +188,7 @@ int createBuffer3(){
   };
 
   /* Create vertex array */
-  unsigned int vao; // Vertex array object
-  GLCall(glGenVertexArrays(1, &vao));
-  GLCall(glBindVertexArray(vao));
+  VertexArray *va = new VertexArray();
 
   /* Populate vertex buffer */
   VertexBuffer *vb = new VertexBuffer(pos, 4 * 2 * sizeof(float));
@@ -198,8 +197,9 @@ int createBuffer3(){
   IndexBuffer *ib = new IndexBuffer(indices, 6);
 
   /* Layout of vertex buffer (attributes) */
-  GLCall(glEnableVertexAttribArray(0));
-  GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));
+  BufferLayout *bl = new BufferLayout();
+  bl->Push<float>(2);              // Push 2 floats
+  va->AddBuffer(*vb, *bl);           // Add buffer and layout to vertex array
 }
 
 int renderScene3(){
