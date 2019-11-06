@@ -198,7 +198,7 @@ int createBuffer3(){
 
   /* Layout of vertex buffer (attributes) */
   BufferLayout *bl = new BufferLayout();
-  bl->Push<float>(2);              // Push 2 floats
+  bl->Push("float", 2);              // Push 2 floats
   va->AddBuffer(*vb, *bl);           // Add buffer and layout to vertex array
 }
 

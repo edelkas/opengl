@@ -7,6 +7,13 @@ struct VertexAttribute {
   unsigned int count;
   unsigned char norm;  // 1 or 0, normalized or not
 
+  static unsigned int GetType(const char* type){
+    if (type == "float")         return GL_FLOAT;
+    if (type == "unsigned int")  return GL_UNSIGNED_INT;
+    if (type == "unsigned char") return GL_UNSIGNED_BYTE;
+    assert(false);     // Invalid type
+  }
+
   static unsigned int GetSize(unsigned int type){
     switch(type){
       case GL_FLOAT:         return sizeof(float);
@@ -26,27 +33,13 @@ private:
 public:
   BufferLayout() : m_Stride(0) { }
 
-  // Add attribute to the vector. Overloaded template. 3 types implemented.
-  // To support more types, this needs to be extended (or generalized).
-  template<typename T> void Push(unsigned int count) {
-    //std::cout << "Error: unsupported type " << typeid(T).name() << std::endl;
-    assert(false);
+  // Add attribute to the vector.
+  void Push(const char* type, unsigned int count) {
+    unsigned int attributeType = VertexAttribute::GetType(type);
+    m_Attributes.push_back({ attributeType, count, GL_FALSE });
+    m_Stride += count * VertexAttribute::GetSize(attributeType);
   }
 
   inline const std::vector<VertexAttribute>& GetAttributes() const { return m_Attributes; }
   inline unsigned int GetStride() const { return m_Stride; }
 };
-
-// NOTA: Para corregir fallo de redefinicion, hacer estas especializaciones inline.
-template<> void BufferLayout::Push<float>(unsigned int count) {
-  m_Attributes.push_back({ GL_FLOAT, count, GL_FALSE });
-  m_Stride += count * VertexAttribute::GetSize(GL_FLOAT);
-}
-template<> void BufferLayout::Push<unsigned int>(unsigned int count) {
-  m_Attributes.push_back({ GL_UNSIGNED_INT, count, GL_FALSE });
-  m_Stride += count * VertexAttribute::GetSize(GL_UNSIGNED_INT);
-}
-template<> void BufferLayout::Push<unsigned char>(unsigned int count) {
-  m_Attributes.push_back({ GL_UNSIGNED_BYTE, count, GL_FALSE });
-  m_Stride += count * VertexAttribute::GetSize(GL_UNSIGNED_BYTE);
-}
