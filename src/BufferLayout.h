@@ -34,7 +34,7 @@ public:
   BufferLayout() : m_Stride(0) { }
 
   // Add attribute to the vector.
-  void Push(const char* type, unsigned int count) {
+  void AddAttribute(const char* type, unsigned int count) {
     unsigned int attributeType = VertexAttribute::GetType(type);
     m_Attributes.push_back({ attributeType, count, GL_FALSE });
     m_Stride += count * VertexAttribute::GetSize(attributeType);
