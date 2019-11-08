@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Renderer.h"
+#include <assert.h>
 
 struct VertexAttribute {
   unsigned int type;   // GL_FLOAT, GL_UNSIGNED_INT, GL_UNSIGNED_CHAR,...

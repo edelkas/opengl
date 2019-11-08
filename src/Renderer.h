@@ -1,6 +1,9 @@
 #pragma once
 #include <GLEW/glew.h>
 #include <assert.h>
+#include "VertexArray.h"
+#include "IndexBuffer.h"
+#include "Shader.h"
 
 // -----------------------------------------------------------------------------
 //                               ERROR HANDLING
@@ -22,3 +25,19 @@ void GLClearErrors();
 /* Read, print and clear all errorss */
 bool GLCheckErrors(const char* function, const char* file, int line);
 // TODO: Translate OpenGL error codes into enums (or even words)
+
+// -----------------------------------------------------------------------------
+//                                 RENDERER
+// -----------------------------------------------------------------------------
+struct DrawElement {
+  VertexArray va;
+  IndexBuffer ib;
+  Shader shader;
+};
+
+class Renderer
+{
+public:
+  void Clear() const;
+  void Draw(const DrawElement& elem) const;
+};

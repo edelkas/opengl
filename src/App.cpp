@@ -11,10 +11,9 @@
 #include "VertexArray.h"
 
 // -----------------------------------------------------------------------------
-//                                BUFFER CODE
+//                              RENDERING CODE
 // -----------------------------------------------------------------------------
-
-int createBuffer(){
+static DrawElement renderInit(Shader& shader){
   /* Vertex buffer data */
   float pos[] = {
                     -0.5f, -0.5f, // 0
@@ -41,28 +40,23 @@ int createBuffer(){
   /* Layout of vertex buffer (attributes) */
   BufferLayout *bl = new BufferLayout();
   bl->AddAttribute("float", 2);              // Push 2 floats
-  va->AddBuffer(*vb, *bl);           // Add buffer and layout to vertex array
-}
-
-// -----------------------------------------------------------------------------
-//                              RENDERING CODE
-// -----------------------------------------------------------------------------
-static void renderInit(Shader& shader){
-  /* Set up data buffer */
-  createBuffer();
+  va->AddBuffer(*vb, *bl);                   // Add buffer and layout to vertex array
 
   /* Set up the shader */
   shader.Bind();
   shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+
+  /* Return Draw Element */
+  return {*va, *ib, shader};
 }
 
-static void renderLoop(unsigned int frame, Shader& shader){
+static void renderLoop(unsigned int frame, const Renderer& renderer, DrawElement& elem){
   int base = 100;
   int limit = 50;
   float g = ((float)(frame % limit)) / (float)base;
   if ((frame % (2 * limit)) >= limit) g = (float)limit / (float)base - g;
-  shader.SetUniform4f("u_Color", 0.0f, g, 0.0f, 1.0f);
-  GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+  elem.shader.SetUniform4f("u_Color", 0.0f, g, 0.0f, 1.0f);
+  renderer.Draw(elem);
 }
 
 // -----------------------------------------------------------------------------
@@ -84,16 +78,17 @@ int main(void)
     glfwSwapInterval(1);                       // Sync framerate with refresh rate
     if (glewInit() != GLEW_OK) return -1;      // Initialize GLEW
 
-    unsigned int frame = 0;
-    Shader shader("res/shaders/Basic.shader");
-    renderInit(shader);                        // Set up our scene
+    unsigned int frame = 0;                    // Frame counter
+    Renderer renderer;
+    Shader shader("res/shaders/Basic.shader"); // Set up shader
+    DrawElement elem = renderInit(shader);     // Set up our scene
 
     while (!glfwWindowShouldClose(window)) {   // Loop until window is closed
         /* Start of rendering */
-        glClear(GL_COLOR_BUFFER_BIT);
+        renderer.Clear();
 
         /* Rendering */
-        renderLoop(frame, shader);             // Render the scene
+        renderLoop(frame, renderer, elem);     // Render the scene
 
         /* End of rendering */
         glfwSwapBuffers(window);               // Swap front and back buffers

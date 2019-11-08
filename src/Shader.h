@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 
-struct ShaderSource{
+struct ShaderSource {
   std::string vertexSource;
   std::string fragmentSource;
 };
@@ -16,8 +16,8 @@ private:
 public:
   Shader(const std::string& filepath);
   ~Shader();
-  void Bind();
-  void Unbind();
+  void Bind() const;
+  void Unbind() const;
   void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
 private:
   ShaderSource ParseShader(const std::string& filepath);
