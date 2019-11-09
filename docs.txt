@@ -295,3 +295,41 @@ glBindVertexArray(vao);
 * Introducido en OpenGL 4.3, muy reciente, menos compatibilidad.
 * Automático: Nos permite especificar una función que será llamada cada vez que se produzca un error, en lugar de tener que comprobar nosotros manualmente.
 * Más detallado, en lugar de sólo un código de error.
+
+\\ ------------ Texturas ------------
+
+* Usualmente, imágenes que podemos cargar en la GPU y usar en nuestro shader.
+* Pero en general, puede ser cualquier cosa que cargamos en la GPU para emplearlo (e.g. cálculos matemáticos precalculados).
+
+* Esquema:
+* 1) Crear un buffer con los datos RGBA de los píxeles de la imagen. Se puede usar una librería para esto, como std_image.
+* 2) Creamos una textura en OpenGL.
+* 3) Bindeamos la textura. Puede haber varias bindeadas simultaneamente, de hecho, hay unos 32 slots en plataformas grandes, u 8 en pequeñas como móbiles.
+* 4) Configuramos la textura.
+* 5) Especificamos los datos de la textura.
+* 6) Liberamos los datos intermedios.
+* 7) Modificamos el shader para implementar la textura.
+* 8) Destruir la textura.
+
+* Procedimiento:
+* 1) Usamos stb_image para crear el buffer de datos RGBA.
+* 1.1) Como OpenGL asume que el origen es la esquina inferior izquiera, debemos reflejar la imagen verticalmente: stbi_set_flip_vertically_on_load(1);
+* 1.2) Guardamos tanto el buffer creado como los datos básicos de la imagen (altura, anchura, bits por pixel) en variables creadas con anterioridad (las que comienzan por m_):
+m_LocalBuffer = stbi_load(filepath.c_str(), &m_Width, &m_Height, &m_BPP, 4);
+* 2) Generamos la textura y guardamos el ID dentro de un unsigned int: glGenTextures(1, &m_RendererID)
+* 3) Bindeamos la textura: glBindTexture(GL_TEXTURE_2D, m_RendererID); Para seleccionar el slot, usamos antes glActiveTexture.
+* 4) Especificamos varios parámetros. A menudo no tienen valores predeterminados, luego es OBLIGATORIO especificarlos.
+* 4.1) Filtro minificador: Qué hacer cuando disminuye el tamaño de la textura renderizada (ajustar al vecino más próximo, interpolación lineal, etc.)
+* 4.2) Filtro maxificador: Qué hacer cuando aumenta el tamaño de la textura renderizada.
+* 4.3) Wrapping horizontal: Qué hacer cuando se termina la textura horizontalmente (volver al comienzo, teselar, etc).
+* 4.4) Wrapping vertical.
+* 4) Un código ejemplo puede ser el siguiente:
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); 
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_FILTER, GL_LINEAR));
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));
+* 5) Especificamos los datos de la textura, donde los parámetros van en este orden: tipo de textura, nivel de textura, formato interno en el que OpenGL guardará los datos de la textura, anchura de la imagen en píxeles, altura de la imagen en píxeles, bordes, formato externo de los datos que estamos proporcionando, formato de cada uno de los canales de dichos datos, puntero al comienzo de los datos (puede ser nullptr para sólo alocar). Ejemplo: glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer)
+* 6) Hecho esto, ya podemos unbindear la textura y liberar la memoria:
+   GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+   if (m_LocalBuffer) stbi_image_free(m_LocalBuffer);
+* 8) Una vez que hallamos terminado de usarla, llamamos a glDeleteTextures, o podemos ponerlo en el destructor de la clase: glDeleteTextures(1, m_RendererID);

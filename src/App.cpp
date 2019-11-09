@@ -9,6 +9,9 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
+#include "Texture.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"                       // Parsing images for texture load
 
 // -----------------------------------------------------------------------------
 //                              RENDERING CODE
@@ -45,6 +48,11 @@ static DrawElement renderInit(Shader& shader){
   /* Set up the shader */
   shader.Bind();
   shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+
+  /* Set up texture */
+  Texture texture("res/textures/texture.png");
+  texture.Bind();
+  shader.SetUniform1i("u_Texture", 0);
 
   /* Return Draw Element */
   return {*va, *ib, shader};
