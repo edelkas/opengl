@@ -59,30 +59,30 @@ ShaderSource Shader::ParseShader(const std::string& filepath){
 
 unsigned int Shader::CompileShader(unsigned int type, const std::string& source){
   /* Compile shader */
-  unsigned int id = glCreateShader(type);    // Create shader and store id
-  const char* src = &source[0];              // Cast source to C string
-  glShaderSource(id, 1, &src, nullptr);      // Select source of shader
-  glCompileShader(id);                       // Compile shader
+  GLCall(unsigned int id = glCreateShader(type));    // Create shader and store id
+  const char* src = &source[0];                      // Cast source to C string
+  GLCall(glShaderSource(id, 1, &src, nullptr));      // Select source of shader
+  GLCall(glCompileShader(id));                       // Compile shader
 
   /* Handle errors */
   // Retrieve compile status
   int result;
-  glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+  GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
   if (result == GL_FALSE){
     // Retrieve length of error message
     int length;
-    glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+    GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
 
     // Retrieve error message
     char *message = new char[length];
-    glGetShaderInfoLog(id, length, &length, message);
+    GLCall(glGetShaderInfoLog(id, length, &length, message));
 
     // Print error message
     std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader:\n" << message << std::endl;
     delete[] message;
 
     // Delete erroneous shader
-    glDeleteShader(id);
+    GLCall(glDeleteShader(id));
     return 0;
   }
 
@@ -91,7 +91,7 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 }
 
 unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader){
-  unsigned int program = glCreateProgram();
+  GLCall(unsigned int program = glCreateProgram());
   unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
   unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
 

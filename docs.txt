@@ -301,6 +301,8 @@ glBindVertexArray(vao);
 * Usualmente, imágenes que podemos cargar en la GPU y usar en nuestro shader.
 * Pero en general, puede ser cualquier cosa que cargamos en la GPU para emplearlo (e.g. cálculos matemáticos precalculados).
 
+### Crear la textura ###
+
 * Esquema:
 * 1) Crear un buffer con los datos RGBA de los píxeles de la imagen. Se puede usar una librería para esto, como std_image.
 * 2) Creamos una textura en OpenGL.
@@ -325,11 +327,35 @@ m_LocalBuffer = stbi_load(filepath.c_str(), &m_Width, &m_Height, &m_BPP, 4);
 * 4.4) Wrapping vertical.
 * 4) Un código ejemplo puede ser el siguiente:
    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); 
-   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_FILTER, GL_LINEAR));
-   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));
-   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+   GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 * 5) Especificamos los datos de la textura, donde los parámetros van en este orden: tipo de textura, nivel de textura, formato interno en el que OpenGL guardará los datos de la textura, anchura de la imagen en píxeles, altura de la imagen en píxeles, bordes, formato externo de los datos que estamos proporcionando, formato de cada uno de los canales de dichos datos, puntero al comienzo de los datos (puede ser nullptr para sólo alocar). Ejemplo: glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer)
 * 6) Hecho esto, ya podemos unbindear la textura y liberar la memoria:
    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
    if (m_LocalBuffer) stbi_image_free(m_LocalBuffer);
 * 8) Una vez que hallamos terminado de usarla, llamamos a glDeleteTextures, o podemos ponerlo en el destructor de la clase: glDeleteTextures(1, m_RendererID);
+
+### Usar la textura ###
+
+* Es preciso especificar las coordenadas de la textura, que indican en cada vértice las coordenadas relativas en la textura para samplear. Los puntos entre vértices serán entonces interpolados usando la textura.
+** Para hacer lo anterior, simplemente añadimos dichas coordenadas (normalizadas) como un nuevo atributo en el layout de nuestro vertex buffer. Será preciso modificar varias cosas.
+
+### Modificar el shader ###
+
+* En el VERTEX shader deberemos leer el nuevo atributo (coordenadas de textura) como variable de entrada:
+	layout(location = 1) in vec2 texCoord;
+* Simplemente se lo mandamos al fragment shader, que es el que debe determinar el color de cada píxel. Para ello, definimos una variable de salida:
+	out vec2 v_texCoord;
+* Y en la función main simplemente asignamos:
+	v_texCoord = texCoord;
+* Nota: El prefijo v_ viene de "varying variable", que es como se llama a las variables que ejercen de interfaz entre el vertex y el fragment shader.
+
+* En el FRAGMENT shader, recibimos esta variable:
+	in vec2 v_texCoord;
+* Leemos el uniform que hemos creado en la aplicación principal. El tipo es un unsigned int con el índice de la textura, sin embargo, el tipo que OpenGL usa es:
+	uniform sampler2D u_Texture;
+* Y en la función main, calculamos el color sampleando la textura de acuerdo a la coordenada de textura correspondiente:
+	vec4 texColor = texture(u_Texture, v_texCoord);
+	color = texColor;
+

@@ -11,18 +11,23 @@
 #include "VertexArray.h"
 #include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"                       // Parsing images for texture load
+#include "stb_image/stb_image.h"             // Parsing images for texture load
 
 // -----------------------------------------------------------------------------
 //                              RENDERING CODE
 // -----------------------------------------------------------------------------
 static DrawElement renderInit(Shader& shader){
-  /* Vertex buffer data */
+  /**
+   * Vertex buffer data
+   *
+   * - First 2 floats are normalized spatial coordinates of the vertices.
+   * - Second 2 floats are normalized texture coordinates. Origin is at
+   */
   float pos[] = {
-                    -0.5f, -0.5f, // 0
-                     0.5f, -0.5f, // 1
-                     0.5f,  0.5f, // 2
-                   - 0.5f,  0.5f  // 3
+                    -0.5f, -0.5f, 0.0f, 0.0f, // 0
+                     0.5f, -0.5f, 1.0f, 0.0f, // 1
+                     0.5f,  0.5f, 1.0f, 1.0f, // 2
+                    -0.5f,  0.5f, 0.0f, 1.0f  // 3
                   };
 
   /* Index buffer data */
@@ -35,19 +40,20 @@ static DrawElement renderInit(Shader& shader){
   VertexArray *va = new VertexArray();
 
   /* Populate vertex buffer */
-  VertexBuffer *vb = new VertexBuffer(pos, 4 * 2 * sizeof(float));
+  VertexBuffer *vb = new VertexBuffer(pos, 4 * 4 * sizeof(float));
 
   /* Populate index buffer */
   IndexBuffer *ib = new IndexBuffer(indices, 6);
 
   /* Layout of vertex buffer (attributes) */
   BufferLayout *bl = new BufferLayout();
-  bl->AddAttribute("float", 2);              // Push 2 floats
+  bl->AddAttribute("float", 2);              // Push 2 floats, spatial coords
+  bl->AddAttribute("float", 2);              // Push 2 floats, texture coords
   va->AddBuffer(*vb, *bl);                   // Add buffer and layout to vertex array
 
   /* Set up the shader */
   shader.Bind();
-  shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+  //shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
 
   /* Set up texture */
   Texture texture("res/textures/texture.png");
@@ -63,7 +69,7 @@ static void renderLoop(unsigned int frame, const Renderer& renderer, DrawElement
   int limit = 50;
   float g = ((float)(frame % limit)) / (float)base;
   if ((frame % (2 * limit)) >= limit) g = (float)limit / (float)base - g;
-  elem.shader.SetUniform4f("u_Color", 0.0f, g, 0.0f, 1.0f);
+  //elem.shader.SetUniform4f("u_Color", 0.0f, g, 0.0f, 1.0f);
   renderer.Draw(elem);
 }
 

@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include "external/stb_image/stb_image.h"
+#include "stb_image/stb_image.h"
 
 Texture::Texture(const std::string& filepath)
   : m_FilePath(filepath), m_LocalBuffer(nullptr), m_Height(0), m_Width(0), m_BPP(0)
@@ -28,10 +28,10 @@ Texture::Texture(const std::string& filepath)
    * - Horizontal wrapping: What to do when the texture is done horizontally.
    * - Vertical wrapping:   What to do when the texture is done vertically.
    */
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); // Linear interpolation
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_FILTER, GL_LINEAR)); // Linear interpolation
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));      // Clamping (instead of tiling)
-  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));      // Clamping (instead of tiling)
+  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));    // Linear interpolation
+  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));    // Linear interpolation
+  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)); // Clamping (instead of tiling)
+  GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)); // Clamping (instead of tiling)
 
   /**
    * Provide OpenGL with the texture data.
@@ -56,14 +56,14 @@ Texture::Texture(const std::string& filepath)
 }
 
 Texture::~Texture(){
-  GLCall(glDeleteTextures(1, m_RendererID));
+  GLCall(glDeleteTextures(1, &m_RendererID));
 }
 
-Texture::Bind(unsigned int slot = 0){
+void Texture::Bind(unsigned int slot/*= 0*/) const {
   GLCall(glActiveTexture(GL_TEXTURE0 + slot));        // Select slot to bind texture
   GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 }
 
-Texture::Unbind(){
+void Texture::Unbind() const {
  GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 }
